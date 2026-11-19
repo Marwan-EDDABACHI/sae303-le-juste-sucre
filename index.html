@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Le Juste Sucre — SAÉ 303</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-sans">
+
+  <!-- En-tête -->
+  <header class="border-b border-slate-800 bg-slate-900/80 py-4 px-6">
+    <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-extrabold text-pink-400">Le Juste Sucre</h1>
+        <p class="text-sm text-slate-300">Quel bonbon contient le plus de sucre pour 100 g ?</p>
+      </div>
+      <div class="flex gap-6 text-right">
+        <div>
+          <span class="text-xs uppercase text-slate-400 block">Série actuelle</span>
+          <span id="score-actuel" class="text-2xl font-bold text-emerald-400">0</span>
+        </div>
+        <div>
+          <span class="text-xs uppercase text-slate-400 block">Record</span>
+          <span id="meilleur-score" class="text-2xl font-bold text-amber-400">0</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Zone principale du jeu -->
+  <main class="max-w-5xl w-full mx-auto px-6 py-8 flex-1 flex flex-col justify-center">
+    
+    <!-- Indicateur de chargement pendant le fetch() -->
+    <div id="loader" class="text-center py-12">
+      <p class="text-lg text-slate-300 animate-pulse">Chargement des données nutritionnelles...</p>
+    </div>
+
+    <!-- Arène du duel (masquée tant que le JSON n'est pas chargé) -->
+    <section id="zone-duel" class="hidden space-y-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+        
+        <!-- Carte Bonbon A -->
+        <button id="btn-bonbon-a" type="button" class="group bg-slate-900 hover:bg-slate-800 border-2 border-slate-700 hover:border-pink-500 rounded-2xl p-6 text-left transition flex flex-col justify-between focus:outline-none focus:ring-4 focus:ring-pink-500">
+          <div>
+            <span id="marque-a" class="text-xs font-semibold uppercase tracking-wider text-pink-400">Marque A</span>
+            <h2 id="nom-a" class="text-xl font-bold text-white mt-1">Bonbon A</h2>
+          </div>
+          <div class="my-6 flex justify-center">
+            <img id="img-a" src="" alt="" class="h-40 object-contain rounded-lg bg-white p-2">
+          </div>
+          <p id="resultat-a" class="text-center text-lg font-extrabold text-amber-300 hidden">? g de sucre</p>
+        </button>
+
+        <!-- Carte Bonbon B -->
+        <button id="btn-bonbon-b" type="button" class="group bg-slate-900 hover:bg-slate-800 border-2 border-slate-700 hover:border-cyan-400 rounded-2xl p-6 text-left transition flex flex-col justify-between focus:outline-none focus:ring-4 focus:ring-cyan-400">
+          <div>
+            <span id="marque-b" class="text-xs font-semibold uppercase tracking-wider text-cyan-400">Marque B</span>
+            <h2 id="nom-b" class="text-xl font-bold text-white mt-1">Bonbon B</h2>
+          </div>
+          <div class="my-6 flex justify-center">
+            <img id="img-b" src="" alt="" class="h-40 object-contain rounded-lg bg-white p-2">
+          </div>
+          <p id="resultat-b" class="text-center text-lg font-extrabold text-amber-300 hidden">? g de sucre</p>
+        </button>
+
+      </div>
+
+      <!-- Feedback + Graphique Chart.js révélé après le clic -->
+      <div id="zone-resultat" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <p id="message-feedback" class="text-lg font-bold"></p>
+          <button id="btn-suivant" type="button" class="bg-pink-600 hover:bg-pink-500 text-white font-semibold px-5 py-2.5 rounded-xl transition">
+            Duel suivant →
+          </button>
+        </div>
+        <div class="max-w-2xl mx-auto">
+          <canvas id="graphique-comparatif"></canvas>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Pied de page obligatoire (Sources, Logos, Groupe, Candidature) -->
+  <footer class="border-t border-slate-800 bg-slate-900 py-8 px-6 text-sm text-slate-300">
+    <div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+      
+      <div>
+        <h3 class="font-bold text-white mb-2">Notre démarche</h3>
+        <p class="text-slate-400 leading-relaxed">
+          Application interactive développée en JavaScript dans le cadre de la SAÉ 303 (parcours Développement web et dispositifs interactifs) afin de sensibiliser de manière ludique aux teneurs en sucre des confiseries.
+        </p>
+      </div>
+
+      <div>
+        <h3 class="font-bold text-white mb-2">Sources des données</h3>
+        <p class="text-slate-400">
+          <!-- COLLER ICI LA SOURCE EXACTE DE _liste-sources.ods (ONGLET DEV) -->
+          Jeu de données : Open Food Facts (bonbons) — <a href="https://fr.openfoodfacts.org/" target="_blank" rel="noopener" class="underline text-pink-400 hover:text-pink-300">fr.openfoodfacts.org</a>.
+        </p>
+      </div>
+
+      <div class="space-y-3">
+        <h3 class="font-bold text-white">Équipe & Formation</h3>
+        <p class="text-slate-400">
+          BUT MMI — Promotion 2026-2027 (Parcours Dev)<br>
+          Réalisé par : <strong class="text-slate-200">Marwan Eddabachi, Aaron et Nachbi</strong>
+        </p>
+        <div class="flex items-center gap-4 pt-2 bg-white/95 p-3 rounded-xl w-fit">
+          <img src="./assets/logos/CY IUT_coul.png" alt="Logo IUT de Cergy-Pontoise" class="h-10 object-contain">
+          <img src="./assets/logos/CY Cergy Paris Universite_coul.png" alt="Logo CY Cergy Paris Université" class="h-10 object-contain">
+        </div>
+      </div>
+
+    </div>
+  </footer>
+
+  <script src="./js/charts.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>
